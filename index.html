@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>日本線 流量轉換儀表板 10/16–10/29</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+
+  :root{
+    --bg:#FAF8F5; --card:#FFFFFF;
+    --ink:#2B2A28; --ink-soft:#55534F; --muted:#8A8681;
+    --primary:#E8374A; --primary-soft:#FDEAEC;
+    --charcoal:#3D3A38;
+    --up:#2E8B57; --up-soft:#E3F3EC;
+    --down:#E8374A; --down-soft:#FDEAEC;
+    --line:#E8E4DE;
+    --amber:#C98A3B; --blue:#6B7280; --purple:#C0556B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  .shell{display:flex;min-height:100vh;}
+
+  .sidebar{width:232px;flex-shrink:0;background:var(--charcoal);color:#fff;position:sticky;top:0;height:100vh;overflow-y:auto;padding:26px 0 20px;}
+  .side-logo{display:flex;align-items:center;gap:10px;padding:0 22px 22px;font-weight:800;font-size:15px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:14px;}
+  .side-logo .mark{width:32px;height:32px;border-radius:9px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .side-section-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#8A8681;padding:14px 22px 8px;font-weight:700;}
+  .side-nav{display:flex;flex-direction:column;}
+  .side-nav a{display:flex;align-items:center;gap:11px;padding:10px 22px;color:#D8D4CE;text-decoration:none;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:background .15s;}
+  .side-nav a .ic{width:18px;text-align:center;flex-shrink:0;font-size:14px;}
+  .side-nav a:hover{background:rgba(255,255,255,.05);color:#fff;}
+  .side-nav a.active{background:rgba(232,55,74,.14);border-left-color:var(--primary);color:#fff;font-weight:700;}
+  .side-foot{margin-top:auto;padding:16px 22px 0;font-size:11px;color:#8A8681;}
+
+  .content{flex:1;min-width:0;padding:30px 28px 90px;}
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  .topbar.sticky-bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0 14px;margin-bottom:0;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:8px;}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);margin-bottom:8px;}
+  h1{font-size:28px;font-weight:800;margin:0 0 10px;letter-spacing:-0.01em;padding-bottom:12px;border-bottom:3px solid var(--primary);display:inline-block;}
+  .meta{color:var(--muted);font-size:13px;margin:0;}
+  .period-chip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:12.5px;color:var(--ink-soft);box-shadow:0 1px 2px rgba(16,24,21,.04);white-space:nowrap;}
+  .period-chip b{color:var(--ink);}
+
+  .snapshot-note{display:flex;align-items:center;gap:10px;background:#FFF8EC;border:1px solid #F0DDB0;color:#7A5A16;font-size:12px;padding:10px 16px;border-radius:12px;margin:18px 0 28px;}
+  .snapshot-note a{color:#7A5A16;font-weight:600;}
+
+  .section-head{display:flex;justify-content:space-between;align-items:center;margin:34px 0 14px;flex-wrap:wrap;gap:8px;scroll-margin-top:84px;}
+  .section-head h2{font-size:17px;font-weight:800;margin:0;display:flex;align-items:center;gap:10px;padding-left:12px;border-left:4px solid var(--primary);line-height:1.3;}
+  .section-head .idx{display:none;}
+  .section-head .tag{font-size:11px;color:var(--muted);font-weight:500;background:var(--bg);border-radius:20px;padding:4px 10px;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;}
+  .equation-row{display:flex;align-items:stretch;gap:14px;flex-wrap:wrap;}
+  .equation-row .kpi-card{flex:1 1 220px;}
+  .equation-row .eq-hero{background:var(--charcoal);}
+  .equation-row .eq-hero .kpi-label{color:#C9C4BC;}
+  .equation-row .eq-hero .kpi-num{color:var(--primary);}
+  .equation-row .eq-hero .kpi-sub{color:#B5B0A8;}
+  .equation-row .eq-hero .pill.down{background:rgba(232,55,74,0.18);color:#FF8C97;}
+  .equation-row .eq-hero .pill.up{background:rgba(46,139,87,0.2);color:#6FCF97;}
+  .eq-op{display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--muted);width:22px;flex-shrink:0;}
+  .kpi-card{background:var(--card);border-radius:16px;padding:18px 20px;box-shadow:0 1px 3px rgba(16,24,21,.06),0 6px 14px rgba(16,24,21,.04);}
+  .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .kpi-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .kpi-label{font-size:12px;color:var(--muted);font-weight:600;}
+  .kpi-num{font-family:'IBM Plex Mono',monospace;font-size:25px;font-weight:700;letter-spacing:-0.01em;margin-bottom:4px;}
+  .kpi-sub{font-size:11.5px;color:var(--muted);}
+  .pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;}
+  .pill.up{background:var(--up-soft);color:var(--up);}
+  .pill.down{background:var(--down-soft);color:var(--down);}
+
+  .card{background:var(--card);border-radius:16px;padding:20px 22px;box-shadow:0 1px 3px rgba(16,24,21,.06),0 6px 14px rgba(16,24,21,.04);}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:760px){.grid-2{grid-template-columns:1fr;}}
+
+  .donut-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+  .donut-row svg{flex-shrink:0;}
+  .legend{flex:1;min-width:180px;}
+  .legend-item{display:flex;align-items:center;justify-content:space-between;padding:7px 0;font-size:13px;}
+  .legend-item .lname{display:flex;align-items:center;gap:8px;color:var(--ink-soft);}
+  .legend-item .dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+  .legend-item .lval{font-family:'IBM Plex Mono',monospace;font-weight:700;}
+  .reg-hover-hint{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:12px;color:var(--ink-soft);min-height:70px;}
+  .reg-hover-hint .hint-title{font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .reg-hover-hint .hint-row{display:flex;justify-content:space-between;padding:2px 0;}
+  .reg-hover-hint .placeholder{color:var(--muted);font-style:italic;}
+
+  .obar-row{margin-bottom:14px;}
+  .obar-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+  .obar-top .oname{display:flex;align-items:center;gap:7px;color:var(--ink-soft);}
+  .obar-top .oname .dot{width:9px;height:9px;border-radius:50%;}
+  .obar-top .oval{font-family:'IBM Plex Mono',monospace;font-weight:700;}
+  .obar-bg{height:10px;background:var(--bg);border-radius:20px;overflow:hidden;}
+  .obar-fill{height:100%;border-radius:20px;}
+  .card-title{font-size:14.5px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;}
+  .card-title .n{font-family:'IBM Plex Mono',monospace;color:var(--primary);}
+
+  .share-row{display:grid;grid-template-columns:88px 1fr 52px 62px;align-items:center;gap:10px;padding:8px 0;}
+  .share-row .sname{font-size:13px;color:var(--ink-soft);font-weight:600;}
+  .share-bar-bg{height:12px;background:var(--bg);border-radius:20px;overflow:hidden;}
+  .share-bar-fill{height:100%;border-radius:20px;}
+  .share-pct{font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right;font-size:13px;}
+  .share-delta{font-size:11px;font-weight:700;text-align:right;}
+  .share-delta.up{color:var(--up);} .share-delta.down{color:var(--down);}
+
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .tabs button{border:none;background:var(--card);color:var(--ink-soft);font-family:'Inter',sans-serif;font-weight:600;font-size:12.5px;padding:9px 16px;border-radius:20px;cursor:pointer;box-shadow:0 1px 2px rgba(16,24,21,.05);}
+  .tabs button.active{background:var(--ink);color:#fff;}
+  .tab-badge{font-size:10.5px;font-weight:500;margin-left:5px;opacity:.65;}
+
+  .detail-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:22px;}
+  .detail-head h3{font-size:19px;font-weight:800;margin:0 0 4px;}
+  .detail-head .sub{font-size:12px;color:var(--muted);}
+  .detail-head .conv-big{text-align:right;}
+  .detail-head .conv-big .num{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:800;color:var(--down);}
+  .detail-head .conv-big .lbl{font-size:11px;color:var(--muted);}
+
+  .detail-cols{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;}
+  @media(max-width:760px){.detail-cols{grid-template-columns:1fr;}}
+  .col-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px;}
+
+  .frow{display:grid;grid-template-columns:74px 1fr 52px;gap:10px;align-items:center;padding:5px 0;font-size:12px;}
+  .frow .fname{color:var(--ink-soft);}
+  .fbar-bg{height:14px;background:var(--bg);border-radius:20px;overflow:hidden;}
+  .fbar-fill{height:100%;border-radius:20px;}
+  .fnum{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  .fdrop{font-size:10.5px;color:var(--muted);padding:2px 0 6px 84px;}
+  .fdrop.worst{color:var(--down);font-weight:700;}
+
+  .chip-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);gap:10px;flex-wrap:wrap;}
+  .chip-row:last-of-type{border-bottom:none;}
+  .chip-row .cname{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);font-weight:600;min-width:105px;}
+  .chip-row .cname .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .chip-row .cbar-wrap{flex:1;min-width:50px;}
+  .chip-row .cbar-bg{height:9px;background:var(--bg);border-radius:20px;overflow:hidden;}
+  .chip-row .cbar-fill{height:100%;border-radius:20px;}
+  .chip-row .cstats{display:flex;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap;}
+  .chip-row .cstats .badge{background:var(--bg);border-radius:7px;padding:3px 8px;color:var(--ink-soft);font-weight:600;}
+  .chan-other{font-size:11px;color:var(--muted);margin-top:10px;}
+
+  .insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:820px){.insight-grid{grid-template-columns:1fr;}}
+  .insight-card{background:var(--card);border-radius:20px;padding:22px 24px;box-shadow:0 1px 3px rgba(16,24,21,.06),0 8px 20px rgba(16,24,21,.04);}
+  .insight-num{width:30px;height:30px;border-radius:10px;background:var(--primary-soft);color:var(--primary);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+  .insight-card h4{font-size:15px;font-weight:700;margin:0 0 8px;line-height:1.4;}
+  .insight-card p{font-size:13px;color:var(--ink-soft);line-height:1.75;margin:0 0 12px;}
+  .action-chip{background:var(--primary-soft);border:1px solid #F3C4CB;border-radius:12px;padding:10px 14px;font-size:12.5px;color:var(--ink);line-height:1.6;}
+  .action-chip b{color:var(--primary);}
+
+  .footnote{font-size:11px;color:var(--muted);text-align:center;margin-top:44px;line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="side-logo"><span class="mark">🗾</span><span>日本轉換儀表板</span></div>
+    <div class="side-section-label">總覽</div>
+    <nav class="side-nav">
+      <a href="#sec1" class="active"><span class="ic">📍</span>流量總覽</a>
+      <a href="#sec2"><span class="ic">🧾</span>訂單總覽</a>
+      <a href="#sec3"><span class="ic">◐</span>館頁 vs 行銷頁</a>
+    </nav>
+    <div class="side-section-label">渠道與佔比</div>
+    <nav class="side-nav">
+      <a href="#sec5"><span class="ic">🗾</span>館頁佔比</a>
+      <a href="#sec6"><span class="ic">📣</span>行銷頁佔比</a>
+      <a href="#sec4"><span class="ic">🔀</span>渠道貢獻</a>
+    </nav>
+    <div class="side-section-label">細部分析</div>
+    <nav class="side-nav">
+      <a href="#sec7"><span class="ic">🔎</span>館頁詳細</a>
+      <a href="#sec8"><span class="ic">🔎</span>行銷頁詳細</a>
+      <a href="#sec9"><span class="ic">🛍️</span>商品組成</a>
+    </nav>
+    <div class="side-section-label">結論</div>
+    <nav class="side-nav">
+      <a href="#sec10"><span class="ic">💡</span>行動建議</a>
+    </nav>
+    <div class="side-foot">8個館頁 ・ 9個行銷頁<br/>10/16–10/29 vs 10/2–10/15</div>
+  </aside>
+
+  <main class="content">
+  <div class="wrap">
+
+  <div class="topbar sticky-bar">
+    <div>
+      <div class="kicker">日本市場 · Amplitude 資料</div>
+      <h1>館頁＋行銷頁 轉換儀表板</h1>
+      <p class="meta">8 個館頁（日本館首頁＋7 大地區）　·　9 個行銷頁　·　含轉換漏斗、渠道貢獻與訂單來源</p>
+    </div>
+    <div class="period-chip">本期 <b>10/16–10/29</b> vs 上期 <b>10/2–10/15</b></div>
+  </div>
+
+  <div class="snapshot-note">
+    📌 靜態快照，不會即時更新 — 資料來源為 <a href="https://app.amplitude.com/analytics/liontravel/dashboard/0gx7e93k" target="_blank">Amplitude 儀表板 0gx7e93k</a>。資料區間 10/16–10/29（共 14 天，整段皆為完整資料），上期取等長 14 天 10/2–10/15 比較。「詳細」段落的頁籤可互動切換。
+  </div>
+
+  <div class="section-head" id="sec1"><h2>流量總覽</h2></div>
+  <div class="equation-row">
+    <div class="kpi-card eq-hero">
+      <div class="kpi-top"><div class="kpi-icon" style="background:var(--primary-soft);">📍</div></div>
+      <div class="kpi-label">日本總流量</div>
+      <div class="kpi-num">88,805</div>
+      <div class="kpi-sub"><span class="pill down">↓ 9.5%</span> 上期 98,175</div>
+    </div>
+    <div class="eq-op">=</div>
+    <div class="kpi-card">
+      <div class="kpi-top"><div class="kpi-icon" style="background:#EAF2FB;">🗾</div></div>
+      <div class="kpi-label">8個館頁</div>
+      <div class="kpi-num">58,151</div>
+      <div class="kpi-sub"><span class="pill down">↓ 2.7%</span> 上期 59,781</div>
+    </div>
+    <div class="eq-op">+</div>
+    <div class="kpi-card">
+      <div class="kpi-top"><div class="kpi-icon" style="background:#FBEFE1;">📣</div></div>
+      <div class="kpi-label">9個行銷頁</div>
+      <div class="kpi-num">30,654</div>
+      <div class="kpi-sub"><span class="pill down">↓ 20.2%</span> 上期 38,394</div>
+    </div>
+  </div>
+
+  <div class="section-head" id="sec2"><h2>訂單總覽</h2></div>
+  <div class="equation-row">
+    <div class="kpi-card eq-hero">
+      <div class="kpi-top"><div class="kpi-icon" style="background:var(--down-soft);">🧾</div></div>
+      <div class="kpi-label">日本總訂單數</div>
+      <div class="kpi-num">206</div>
+      <div class="kpi-sub"><span class="pill up">↑ 13.2%</span> 上期 182</div>
+    </div>
+    <div class="eq-op">=</div>
+    <div class="kpi-card">
+      <div class="kpi-top"><div class="kpi-icon" style="background:#EAF2FB;">🗾</div></div>
+      <div class="kpi-label">8個館頁訂單</div>
+      <div class="kpi-num">129</div>
+      <div class="kpi-sub">轉換率 0.222% · 上期 129</div>
+    </div>
+    <div class="eq-op">+</div>
+    <div class="kpi-card">
+      <div class="kpi-top"><div class="kpi-icon" style="background:#FBEFE1;">📣</div></div>
+      <div class="kpi-label">9個行銷頁訂單</div>
+      <div class="kpi-num">77</div>
+      <div class="kpi-sub">轉換率 0.251% · 上期 53</div>
+    </div>
+  </div>
+
+  <div class="section-head" id="sec3"><h2>館頁 vs 行銷頁 佔比</h2></div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">流量佔比</div>
+      <div class="donut-row">
+        <svg id="splitDonut" viewBox="0 0 180 180" width="150" height="150"></svg>
+        <div class="legend">
+          <div class="legend-item"><span class="lname"><span class="dot" style="background:var(--primary)"></span>8個館頁</span><span class="lval">65.5%</span></div>
+          <div class="legend-item"><span class="lname"><span class="dot" style="background:var(--charcoal)"></span>9個行銷頁</span><span class="lval">34.5%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">訂單佔比</div>
+      <div class="donut-row">
+        <svg id="splitDonutOrders" viewBox="0 0 180 180" width="150" height="150"></svg>
+        <div class="legend">
+          <div class="legend-item"><span class="lname"><span class="dot" style="background:var(--primary)"></span>8個館頁</span><span class="lval">62.6%</span></div>
+          <div class="legend-item"><span class="lname"><span class="dot" style="background:var(--charcoal)"></span>9個行銷頁</span><span class="lval">37.4%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head" id="sec5"><h2>館頁流量佔比</h2><span class="tag">各頁加總 · 10/16–10/29</span></div>
+  <div class="grid-2">
+    <div class="card"><svg id="regionDonut" viewBox="0 0 180 180" width="170" height="170" style="display:block;margin:0 auto 8px;"></svg></div>
+    <div class="card"><div id="regionShare"></div></div>
+  </div>
+
+  <div class="section-head" id="sec6"><h2>行銷頁流量佔比</h2><span class="tag">各頁加總 · 10/16–10/29</span></div>
+  <div class="grid-2">
+    <div class="card"><svg id="mktDonut" viewBox="0 0 180 180" width="170" height="170" style="display:block;margin:0 auto 8px;"></svg></div>
+    <div class="card"><div id="mktShare"></div></div>
+  </div>
+
+  <div class="section-head" id="sec4"><h2>訂單來源渠道貢獻</h2><span class="tag">同一訂單可能被多渠道重複計入</span></div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">8個館頁 <span class="n">129 筆訂單</span></div>
+      <div id="regionOrders"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">9個行銷頁 <span class="n">77 筆訂單</span></div>
+      <div id="mktOrders"></div>
+    </div>
+  </div>
+
+  <div class="section-head" id="sec7"><h2>館頁詳細</h2><span class="tag">點選切換</span></div>
+  <div class="tabs" id="regionTabs"></div>
+  <div class="card" id="regionDetail"></div>
+
+  <div class="section-head" id="sec8"><h2>行銷頁詳細</h2><span class="tag">點選切換</span></div>
+  <div class="tabs" id="mktTabs"></div>
+  <div class="card" id="mktDetail"></div>
+
+  <div class="section-head" id="sec9"><h2>商品組成：實際買了什麼</h2><span class="tag">10/16–10/29 · 依 Cohort 查詢</span></div>
+  <div class="snapshot-note">
+    ⚠️ 這段以「購買事件筆數」計算（館頁 181 筆、行銷頁 132 筆），一位購買者可能有多筆，所以不等於上面的訂單數 129／77；其中館頁 12 筆、行銷頁 19 筆的商品類別為空值（全為 Web），在「國外 vs 台灣」與商品型態中排除，平台比例則包含。<b>請看組成比例，不要與上方訂單數直接相加。</b>
+  </div>
+  <div class="grid-2" style="margin-bottom:4px;">
+    <div style="font-size:16px;font-weight:800;color:var(--ink);">8個館頁</div>
+    <div style="font-size:16px;font-weight:800;color:var(--ink);">9個行銷頁</div>
+  </div>
+  <div class="card-title" style="margin:16px 0 12px;">平台：Web vs App</div>
+  <div class="grid-2">
+    <div class="card"><div class="donut-row"><svg id="regionPlatDonut" viewBox="0 0 180 180" width="140" height="140"></svg><div class="legend" id="regionPlatLegend"></div></div></div>
+    <div class="card"><div class="donut-row"><svg id="mktPlatDonut" viewBox="0 0 180 180" width="140" height="140"></svg><div class="legend" id="mktPlatLegend"></div></div></div>
+  </div>
+  <div class="card-title" style="margin:24px 0 12px;">地區：國外 vs 台灣 <span style="font-weight:500;color:var(--muted);font-size:11px;">（滑鼠移到圖上看該地區買了哪些商品型態）</span></div>
+  <div class="grid-2">
+    <div class="card"><div class="donut-row"><svg id="regionRegDonut" viewBox="0 0 180 180" width="140" height="140"></svg><div class="legend" id="regionRegLegend"></div></div><div class="reg-hover-hint" id="regionRegHint"></div></div>
+    <div class="card"><div class="donut-row"><svg id="mktRegDonut" viewBox="0 0 180 180" width="140" height="140"></svg><div class="legend" id="mktRegLegend"></div></div><div class="reg-hover-hint" id="mktRegHint"></div></div>
+  </div>
+  <div class="insight-card" style="margin-top:16px;">
+    <div class="insight-num" style="background:var(--down-soft);color:var(--down);">★</div>
+    <h4>館頁賣的幾乎都是「國外團」，行銷頁組成明顯更分散</h4>
+    <p>8個館頁的購買裡，<b>87.8% 是 Web</b>，國外 83.4%，且國外以團體為主（95.7%），僅少量機票與票券——館頁基本上是團體套裝的入口。行銷頁則有 <b>38.6% 來自 App</b>，台灣商品佔 34.5%（團體 74.4%、票券 17.9%、訂房與自由行各少量），國外也出現票券（12.2%）與機票（6.8%）。</p>
+    <div class="action-chip"><b>建議：</b>行銷頁的成效不該只看團體訂單轉換率，應把票券、機票與台灣商品一併納入評估；App 轉換佔比高，也值得把 App 導流納入行銷頁操作。</div>
+  </div>
+
+  <div class="section-head" id="sec10"><h2>整體行動建議</h2></div>
+  <div class="insight-grid">
+    <div class="insight-card">
+      <div class="insight-num">1</div>
+      <h4>行銷頁流量掉 20.2%，訂單卻增加 45.3%</h4>
+      <p>9 個行銷頁流量從 38,394 降到 30,654，但訂單由 53 筆增至 77 筆（轉換率 0.138% → 0.251%）；館頁則是流量 -2.7%、訂單持平 129 筆。整體訂單 182→206（+13.2%）全由行銷頁撐起來。</p>
+      <div class="action-chip"><b>建議：</b>逐頁比對上期訂單，找出貢獻本期新增 24 筆行銷頁訂單的頁面（如 CNY、環球影城、四季），把操作方式複製到其他頁。</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">2</div>
+      <h4>日本高CP值嚴選系列團流量崩盤 85.9%</h4>
+      <p>從 16,723 降到 2,354，是本期跌幅最大的頁面。目前 51.4% 的流量（1,228 人）來自 Lion Push Notifications，但這些人 0 筆訂單，全頁僅 4 筆訂單，其中 2 筆來自 Organic Search。</p>
+      <div class="action-chip"><b>建議：</b>向該頁窗口確認是否被撤下曝光位置或停止投放，並檢查 Lion Push Notifications 推播導向的內容是否與頁面主題相符。</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">3</div>
+      <h4>親子、東京迪士尼兩頁掛零</h4>
+      <p>親子頁僅 424 人瀏覽、迪士尼 409 人，購買數都是 0。親子頁 234 人看了商品、只有 22 人加購車；迪士尼 301 人看商品、7 人進結帳、3 人到付款，仍沒人完成購買。流量本來就小，且上期分別為 419、398，幾乎沒變。</p>
+      <div class="action-chip"><b>建議：</b>確認兩頁商品是否仍可購買，並評估這兩頁是否值得繼續維運或需換導流策略。</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">4</div>
+      <h4>日本假期（CNY）：流量 +64.4%、轉換率最高的頁面之一</h4>
+      <p>從 1,699 增至 2,794，整頁轉換率 0.573%、16 筆訂單。Lion Push Notifications 渠道（佔流量 30.2%）貢獻 12 筆訂單、轉換率 1.387%；Organic Search 與 Paid Search 合計佔流量 47.1%，卻只有 1 筆訂單，顯示成效主要靠推播經營。</p>
+      <div class="action-chip"><b>建議：</b>記錄這波 Lion Push Notifications 推播的名單與文案節奏作為範本，並評估將自然／付費流量導入此頁。</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">5</div>
+      <h4>日本四季（冬季）流量暴增 145.2%，但轉換偏低</h4>
+      <p>4,617 → 11,321，其中 76.2% 是 Lion Push Notifications 流量（8,689 人），但 Lion Push Notifications 只帶來 10 筆訂單（轉換率 0.115%），整頁轉換率 0.124%，低於行銷頁平均 0.251%。大量推播點進來的人多半只是看看。</p>
+      <div class="action-chip"><b>建議：</b>檢視推播標題與頁面落地內容是否一致，並測試在頁面首屏放更明確的商品／優惠。</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">6</div>
+      <h4>日本環球影城：Paid Social 流量多、卻沒人買</h4>
+      <p>頁面流量 +40.4%（1,447 → 2,031），整頁轉換率 0.591%、12 筆訂單。Paid Social 是最大流量來源，佔 29.1%（608 人），卻 0 筆訂單；Organic Search 佔 21.9%、2 筆訂單，轉換率 0.438%。</p>
+      <div class="action-chip"><b>建議：</b>檢視 Paid Social 的受眾與素材，必要時把預算轉往搜尋或自然流量。</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">7</div>
+      <h4>日本館首頁是館頁的主力；北海道是成長最多的地區</h4>
+      <p>日本館首頁 43,392 人，佔館頁各頁加總的 52.9%，貢獻 110 筆訂單（轉換率 0.254%）。7 大地區中北海道成長最多（+11.8%，12,833 → 14,350），但轉換率僅 0.139%，且 34.3% 流量來自 Cross-network，轉換率 0.171%；其餘地區變動都在 ±3.3% 內。</p>
+      <div class="action-chip"><b>建議：</b>優先優化日本館首頁到各地區的導流動線，並檢視北海道 Cross-network 流量的品質。</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">8</div>
+      <h4>「商品瀏覽→加購車」仍是全站共通斷點</h4>
+      <p>17 個頁面中有 15 個最大流失都在這一步，幅度 86.3%–94.1%，橫跨館頁與行銷頁（其餘兩頁親子、迪士尼最大流失在付款到購買）。問題在商品頁本身，與流量來源無關。</p>
+      <div class="action-chip"><b>建議：</b>找 UX／前端一起檢視加購車按鈕、價格顯示與房型／出發日選擇流程。</div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    所有頁面篩選皆使用 [Amplitude] Page Location · 轉換視窗 1 天、依序漏斗、以不重複使用者計算 · 頁面清單：館頁 8 個（日本館首頁、關東、關西、北海道、北陸、九州、東北、沖繩）、行銷頁 9 個（四國、已成團、親子、高CP值、深度、假期CNY、四季冬季、東京迪士尼、環球影城）<br/>
+    頂部總流量／總訂單為各群組「去重」後數字（與 Amplitude 儀表板一致）；館頁、行銷頁兩群組之間有少量重複使用者，8個館頁與9個行銷頁去重後合計為 76,631 人。各頁佔比、各頁詳細為各頁獨立計算，加總會大於群組去重數 · 渠道訂單各自獨立計算，加總可能超過總訂單數<br/>
+    商品組成以新建 Cohort（10/16–10/29 館頁／行銷頁購買者，人數 133／78，與漏斗訂單 129／77 略有差異）查詢購買事件，依 product_category 與 App/Web 分類 · 此頁為靜態匯出，若需要更新數據，請回到 Amplitude 儀表板或請 Claude 重新產出
+  </div>
+
+  </div>
+  </main>
+</div>
+<script>
+// scroll-spy: highlight the sidebar link for the section currently in view
+(function(){
+  const links = Array.from(document.querySelectorAll('.side-nav a'));
+  const targets = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll(){
+    let current = targets[0];
+    for(const t of targets){
+      if(t.getBoundingClientRect().top - 90 <= 0) current = t;
+    }
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+current.id));
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+</script>
+<script>
+const DATA = {"REGIONS": [{"name": "日本館首頁", "pv_cur": 43392, "pv_prev": 46435, "funnel": [43392, 32558, 2701, 552, 238, 202, 110], "channels": [["Paid Search", 39.0, 0.213, 39], ["Organic Search", 32.7, 0.306, 47], ["Direct", 13.6, 0.235, 15], ["Cross-network", 4.0, 0.214, 4], ["Lion Push Notifications", 2.9, 0.446, 6]], "other": 7.8}, {"name": "北海道", "pv_cur": 14350, "pv_prev": 12833, "funnel": [14350, 10351, 659, 101, 40, 33, 20], "channels": [["Organic Search", 36.1, 0.163, 9], ["Cross-network", 34.3, 0.171, 9], ["Paid Search", 19.6, 0.133, 4], ["Direct", 6.2, 0.209, 2], ["Lion Push Notifications", 1.2, 0.0, 0]], "other": 2.6}, {"name": "關西", "pv_cur": 5425, "pv_prev": 5612, "funnel": [5425, 4223, 327, 62, 24, 21, 15], "channels": [["Organic Search", 44.4, 0.198, 5], ["Paid Search", 31.7, 0.333, 6], ["Direct", 12.1, 0.291, 2], ["Cross-network", 3.2, 0.549, 1], ["Lion Push Notifications", 2.7, 0.0, 0]], "other": 5.9}, {"name": "關東", "pv_cur": 4846, "pv_prev": 4711, "funnel": [4846, 3903, 263, 42, 17, 13, 7], "channels": [["Organic Search", 46.7, 0.042, 1], ["Paid Search", 28.3, 0.139, 2], ["Direct", 12.5, 0.471, 3], ["Cross-network", 4.8, 0.0, 0], ["Lion Push Notifications", 2.5, 0.769, 1]], "other": 5.2}, {"name": "東北", "pv_cur": 4109, "pv_prev": 4172, "funnel": [4109, 3147, 204, 38, 13, 12, 5], "channels": [["Organic Search", 46.6, 0.149, 3], ["Paid Search", 27.6, 0.084, 1], ["Direct", 13.7, 0.169, 1], ["Cross-network", 4.6, 0.0, 0], ["Lion Push Notifications", 2.0, 0.0, 0]], "other": 5.5}, {"name": "沖繩", "pv_cur": 2909, "pv_prev": 2908, "funnel": [2909, 2319, 157, 23, 7, 6, 1], "channels": [["Organic Search", 58.2, 0.0, 0], ["Paid Search", 22.5, 0.148, 1], ["Direct", 10.0, 0.0, 0], ["Lion Push Notifications", 2.3, 0.0, 0], ["Affiliates", 2.2, 0.0, 0]], "other": 4.8}, {"name": "北陸", "pv_cur": 3376, "pv_prev": 3367, "funnel": [3376, 2683, 186, 34, 22, 20, 10], "channels": [["Organic Search", 49.6, 0.459, 8], ["Paid Search", 26.8, 0.106, 1], ["Direct", 13.9, 0.0, 0], ["Cross-network", 3.1, 0.0, 0], ["Lion Push Notifications", 2.1, 1.37, 1]], "other": 4.5}, {"name": "九州", "pv_cur": 3578, "pv_prev": 3538, "funnel": [3578, 2706, 209, 42, 21, 18, 13], "channels": [["Organic Search", 48.5, 0.274, 5], ["Paid Search", 28.8, 0.463, 5], ["Direct", 11.6, 0.691, 3], ["Lion Push Notifications", 2.9, 0.0, 0], ["Cross-network", 2.6, 0.0, 0]], "other": 5.6}], "MARKETING": [{"name": "已成團", "pv_cur": 9346, "pv_prev": 10949, "funnel": [9346, 6528, 668, 146, 49, 41, 25], "channels": [["Paid Search", 33.9, 0.271, 9], ["Organic Search", 27.0, 0.227, 6], ["Lion Push Notifications", 17.1, 0.299, 5], ["Direct", 10.7, 0.287, 3], ["Cross-network", 4.4, 0.0, 0]], "other": 6.9}, {"name": "日本四季(冬季)", "pv_cur": 11321, "pv_prev": 4617, "funnel": [11321, 6107, 557, 151, 41, 30, 14], "channels": [["Lion Push Notifications", 76.2, 0.115, 10], ["Organic Search", 9.2, 0.191, 2], ["Paid Search", 6.4, 0.273, 2], ["Direct", 3.6, 0.246, 1], ["Organic Social", 1.4, 0.0, 0]], "other": 3.2}, {"name": "四國", "pv_cur": 2877, "pv_prev": 2921, "funnel": [2877, 2272, 133, 25, 12, 11, 8], "channels": [["Organic Search", 47.3, 0.284, 4], ["Paid Search", 28.2, 0.357, 3], ["Direct", 11.1, 0.304, 1], ["Cross-network", 6.3, 0.0, 0], ["Lion Push Notifications", 2.1, 0.0, 0]], "other": 5.0}, {"name": "日本高CP值嚴選系列團", "pv_cur": 2354, "pv_prev": 16723, "funnel": [2354, 1522, 209, 67, 18, 11, 4], "channels": [["Lion Push Notifications", 51.4, 0.0, 0], ["Paid Search", 15.3, 0.0, 0], ["Organic Search", 14.3, 0.585, 2], ["Direct", 9.5, 0.0, 0], ["Organic Social", 4.7, 0.0, 0]], "other": 4.8}, {"name": "日本假期(CNY)", "pv_cur": 2794, "pv_prev": 1699, "funnel": [2794, 1664, 206, 78, 32, 28, 16], "channels": [["Lion Push Notifications", 30.2, 1.387, 12], ["Organic Search", 23.9, 0.0, 0], ["Paid Search", 23.2, 0.15, 1], ["Direct", 8.5, 0.412, 1], ["Cross-network", 5.4, 0.645, 1]], "other": 8.8}, {"name": "日本深度系列團", "pv_cur": 2300, "pv_prev": 2683, "funnel": [2300, 1677, 186, 60, 21, 18, 7], "channels": [["Lion Push Notifications", 36.1, 0.351, 3], ["Organic Search", 22.7, 0.372, 2], ["Paid Search", 21.1, 0.2, 1], ["Direct", 11.8, 0.714, 2], ["Cross-network", 2.2, 0.0, 0]], "other": 6.1}, {"name": "日本環球影城", "pv_cur": 2031, "pv_prev": 1447, "funnel": [2031, 865, 83, 49, 20, 15, 12], "channels": [["Paid Social", 29.1, 0.0, 0], ["Organic Search", 21.9, 0.438, 2], ["Paid Search", 15.5, 0.309, 1], ["Referral", 14.4, 0.0, 0], ["Direct", 9.1, 1.053, 2]], "other": 10.0}, {"name": "親子", "pv_cur": 424, "pv_prev": 419, "funnel": [424, 234, 22, 2, 1, 1, 0], "channels": [["Organic Search", 48.0, 0.0, 0], ["Direct", 27.3, 0.0, 0], ["Paid Search", 18.0, 0.0, 0], ["Lion Push Notifications", 2.1, 0.0, 0], ["Affiliates", 1.4, 0.0, 0]], "other": 3.2}, {"name": "東京迪士尼", "pv_cur": 409, "pv_prev": 398, "funnel": [409, 301, 22, 7, 3, 3, 0], "channels": [["Organic Search", 62.6, 0.0, 0], ["Paid Search", 18.2, 0.0, 0], ["Direct", 9.2, 0.0, 0], ["Cross-network", 6.6, 0.0, 0], ["Affiliates", 0.9, 0.0, 0]], "other": 2.5}], "REGION_ORDER_CHANNELS": [["Organic Search", 59], ["Paid Search", 39], ["Direct", 15], ["Cross-network", 13], ["Lion Push Notifications", 7], ["Affiliates", 3]], "MKT_ORDER_CHANNELS": [["Lion Push Notifications", 34], ["Organic Search", 15], ["Paid Search", 13], ["Direct", 10], ["Cross-network", 3], ["Affiliates", 3]]};
+const REGIONS = DATA.REGIONS, MARKETING = DATA.MARKETING;
+const REGION_ORDER_CHANNELS = DATA.REGION_ORDER_CHANNELS, MKT_ORDER_CHANNELS = DATA.MKT_ORDER_CHANNELS;
+const fmt = n => n.toLocaleString();
+const STEP_LABELS = ["頁瀏覽","商品瀏覽","加購車","結帳開始","旅客資料","付款資訊","購買完成"];
+const CHANNEL_COLORS = { "Organic Search":"#3D3A38", "Paid Search":"#E8374A", "Direct":"#C98A3B", "Lion Push Notifications":"#C0556B", "Paid Social":"#8A8681", "Cross-network":"#6B7280", "Affiliates":"#B5773A", "Referral":"#9C2A44", "Organic Social":"#DDA6AE", "Display":"#C9C4BC", "Internal Referral":"#C9C4BC" };
+const chColor = name => CHANNEL_COLORS[name] || '#9CA6A0';
+const DONUT_PALETTE = ['#E8374A','#C23047','#9C2A44','#3D3A38','#6B6763','#C98A3B','#8A8681','#C0556B','#DDA6AE','#B5773A','#C9C4BC'];
+
+function drawDonut(svgEl, segments, opts){
+  opts = opts || {};
+  const size = 180, r = opts.r || 72, cx = size/2, cy = size/2, sw = opts.sw || 22;
+  const circumference = 2*Math.PI*r;
+  const total = segments.reduce((s,x)=>s+x[1],0);
+  let offset = 0;
+  let html = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#EDEFEC" stroke-width="${sw}"/>`;
+  segments.forEach(([label,val,color])=>{
+    const frac = val/total;
+    const len = frac*circumference;
+    html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}"
+      stroke-dasharray="${len} ${circumference-len}" stroke-dashoffset="${-offset}"
+      transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"><title>${label}: ${val}</title></circle>`;
+    offset += len;
+  });
+  if(opts.centerText){
+    html += `<text x="${cx}" y="${cy-4}" text-anchor="middle" font-family="IBM Plex Mono" font-size="15" font-weight="700" fill="#16241F">${opts.centerText}</text>`;
+    if(opts.centerSub) html += `<text x="${cx}" y="${cy+14}" text-anchor="middle" font-family="Inter" font-size="9.5" fill="#8B968F">${opts.centerSub}</text>`;
+  }
+  svgEl.innerHTML = html;
+}
+
+function renderOrders(container, data){
+  const max = Math.max(...data.map(d=>d[1]));
+  container.innerHTML = data.map(([name,n])=>`
+    <div class="obar-row">
+      <div class="obar-top"><span class="oname"><span class="dot" style="background:${chColor(name)}"></span>${name}</span><span class="oval">${n}</span></div>
+      <div class="obar-bg"><div class="obar-fill" style="width:${n/max*100}%;background:${chColor(name)};"></div></div>
+    </div>`).join('');
+}
+
+function renderShare(container, data){
+  const total = data.reduce((s,d)=>s+d.pv_cur,0);
+  const sorted = [...data].sort((a,b)=>b.pv_cur-a.pv_cur);
+  container.innerHTML = sorted.map((d,i)=>{
+    const pct = d.pv_cur/total*100;
+    const delta = (d.pv_cur-d.pv_prev)/d.pv_prev*100;
+    const cls = delta>=0?'up':'down';
+    const arrow = delta>=0?'↑':'↓';
+    const color = DONUT_PALETTE[i] || '#D8DDD9';
+    return `<div class="share-row">
+      <span class="sname">${d.name}</span>
+      <div class="share-bar-bg"><div class="share-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+      <span class="share-pct">${pct.toFixed(1)}%</span>
+      <span class="share-delta ${cls}">${arrow}${Math.abs(delta).toFixed(1)}%</span>
+    </div>`;
+  }).join('');
+}
+
+function makeTabSystem(tabsEl, detailEl, data){
+  let active = 0;
+  function renderTabs(){
+    tabsEl.innerHTML = data.map((d,i)=>{
+      const conv = (d.funnel[6]/d.funnel[0]*100).toFixed(3);
+      return `<button data-i="${i}" class="${i===active?'active':''}">${d.name}<span class="tab-badge">${conv}%</span></button>`;
+    }).join('');
+    tabsEl.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click', ()=>{ active=parseInt(b.dataset.i,10); renderTabs(); renderDetail(); });
+    });
+  }
+  function renderDetail(){
+    const d = data[active];
+    const f = d.funnel;
+    let worstIdx=1, worstDrop=-1;
+    for(let i=1;i<f.length;i++){
+      const drop = f[i-1]>0 ? 1-f[i]/f[i-1] : 0;
+      if(drop>worstDrop){worstDrop=drop; worstIdx=i;}
+    }
+    const max = f[0];
+    let funnelHtml='';
+    f.forEach((v,i)=>{
+      const pct=(v/max*100).toFixed(1);
+      const shade = `hsl(352, 65%, ${32+i*7}%)`;
+      funnelHtml += `<div class="frow"><span class="fname">${STEP_LABELS[i]}</span><div class="fbar-bg"><div class="fbar-fill" style="width:${pct}%;background:${shade};"></div></div><span class="fnum">${fmt(v)}</span></div>`;
+      if(i===worstIdx){
+        funnelHtml += `<div class="fdrop worst">↓ ${STEP_LABELS[i-1]} → ${STEP_LABELS[i]} 流失 ${(worstDrop*100).toFixed(1)}%（最大斷點）</div>`;
+      }
+    });
+    const chanHtml = `
+      <div class="chip-row" style="border-bottom:none;padding-bottom:0;">
+        <span class="cname"></span><div class="cbar-wrap"></div>
+        <div class="cstats" style="color:#8B968F;font-family:Inter;font-size:10px;font-weight:600;">
+          <span style="width:34px;text-align:center;">佔比</span><span style="width:30px;text-align:center;">訂單</span><span style="width:40px;text-align:center;">轉換</span>
+        </div>
+      </div>
+      ${d.channels.map(([name,pct,conv,orders])=>`
+        <div class="chip-row">
+          <span class="cname"><span class="dot" style="background:${chColor(name)}"></span>${name}</span>
+          <div class="cbar-wrap"><div class="cbar-bg"><div class="cbar-fill" style="width:${pct}%;background:${chColor(name)};"></div></div></div>
+          <div class="cstats">
+            <span class="badge">${pct.toFixed(1)}%</span>
+            <span class="badge">${orders}</span>
+            <span class="badge">${conv.toFixed(2)}%</span>
+          </div>
+        </div>`).join('')}
+      <div class="chan-other">其他渠道 ${d.other.toFixed(1)}%</div>`;
+    const conv = (f[6]/f[0]*100).toFixed(3);
+    const delta = (d.pv_cur-d.pv_prev)/d.pv_prev*100;
+    const dArrow = delta>=0?'↑':'↓';
+    detailEl.innerHTML = `
+      <div class="detail-head">
+        <div>
+          <h3>${d.name}</h3>
+          <div class="sub">10/16–10/29 ${fmt(d.pv_cur)} 次瀏覽 · 上期 10/2–10/15 ${fmt(d.pv_prev)} · <span class="${delta>=0?'pill up':'pill down'}" style="margin-left:4px;">${dArrow}${Math.abs(delta).toFixed(1)}%</span></div>
+        </div>
+        <div class="conv-big"><div class="num">${conv}%</div><div class="lbl">整體轉換率</div></div>
+      </div>
+      <div class="detail-cols">
+        <div>
+          <div class="col-label">轉換漏斗</div>
+          ${funnelHtml}
+        </div>
+        <div>
+          <div class="col-label">流量來源渠道</div>
+          ${chanHtml}
+        </div>
+      </div>
+    `;
+  }
+  renderTabs();
+  renderDetail();
+}
+
+
+const PLAT_COLORS = {"Web":"#3D3A38","App":"#E8374A"};
+const REG_COLORS = {"國外":"#E8374A","台灣":"#3D3A38"};
+const TYPE_BY_REGION_CROSS = {
+  region: {"國外": [["團體",95.7],["機票",2.8],["票券",1.4]], "台灣": [["團體",96.4],["訂房",3.6]]},
+  mkt: {"國外": [["團體",81.1],["票券",12.2],["機票",6.8]], "台灣": [["團體",74.4],["票券",17.9],["訂房",5.1],["自由行",2.6]]}
+};
+const REGION_PLAT = [["Web",87.8],["App",12.2]];
+const MKT_PLAT = [["Web",61.4],["App",38.6]];
+const REGION_REG = [["國外",83.4],["台灣",16.6]];
+const MKT_REG = [["國外",65.5],["台灣",34.5]];
+function renderDimDonut(svgId, legendId, data, colorMap){
+  const svg = document.getElementById(svgId);
+  const legend = document.getElementById(legendId);
+  drawDonut(svg, data.map(([name,pct])=>[name,pct,colorMap[name]]), {r:55, sw:18});
+  legend.innerHTML = data.map(([name,pct])=>`
+    <div class="legend-item"><span class="lname"><span class="dot" style="background:${colorMap[name]}"></span>${name}</span><span class="lval">${pct.toFixed(1)}%</span></div>`).join('');
+}
+
+function showTypeHint(hintId, group, segLabel){
+  const data = TYPE_BY_REGION_CROSS[group][segLabel];
+  const hint = document.getElementById(hintId);
+  hint.innerHTML = `<div class="hint-title">「${segLabel}」買了什麼型態</div>` +
+    data.map(([name,pct])=>`<div class="hint-row"><span>${name}</span><span>${pct.toFixed(1)}%</span></div>`).join('');
+}
+function clearHint(hintId){
+  document.getElementById(hintId).innerHTML = `<span class="placeholder">滑鼠移到圓環上的任一區塊，看該區塊買了什麼商品型態</span>`;
+}
+
+function renderRegDonutWithHover(svgId, legendId, hintId, data, group){
+  const svg = document.getElementById(svgId);
+  const legend = document.getElementById(legendId);
+  drawDonut(svg, data.map(([name,pct])=>[name,pct,REG_COLORS[name]]), {r:55, sw:18});
+  // attach hover listeners to each drawn arc (skip the first background circle)
+  const arcs = svg.querySelectorAll('circle');
+  data.forEach(([name], i)=>{
+    const el = arcs[i+1];
+    if(el){
+      el.style.cursor = 'pointer';
+      el.addEventListener('mouseenter', ()=>showTypeHint(hintId, group, name));
+      el.addEventListener('mouseleave', ()=>clearHint(hintId));
+    }
+  });
+  legend.innerHTML = data.map(([name,pct])=>`
+    <div class="legend-item" style="cursor:pointer;" onmouseenter="showTypeHint('${hintId}','${group}','${name}')" onmouseleave="clearHint('${hintId}')">
+      <span class="lname"><span class="dot" style="background:${REG_COLORS[name]}"></span>${name}</span><span class="lval">${pct.toFixed(1)}%</span></div>`).join('');
+  clearHint(hintId);
+}
+
+
+drawDonut(document.getElementById('splitDonut'), [["8個館頁",58151,"#E8374A"],["9個行銷頁",30654,"#3D3A38"]], {centerText:"88,805", centerSub:"總流量", r:60, sw:20});
+drawDonut(document.getElementById('splitDonutOrders'), [["8個館頁",129,"#E8374A"],["9個行銷頁",77,"#3D3A38"]], {centerText:"206", centerSub:"總訂單數", r:60, sw:20});
+const hubSorted=[...REGIONS].sort((a,b)=>b.pv_cur-a.pv_cur);
+drawDonut(document.getElementById('regionDonut'), hubSorted.map((d,i)=>[d.name,d.pv_cur,DONUT_PALETTE[i]]), {centerText:fmt(hubSorted.reduce((s,d)=>s+d.pv_cur,0)), centerSub:"館頁各頁加總"});
+const mktSorted=[...MARKETING].sort((a,b)=>b.pv_cur-a.pv_cur);
+drawDonut(document.getElementById('mktDonut'), mktSorted.map((d,i)=>[d.name,d.pv_cur,DONUT_PALETTE[i]]), {centerText:fmt(mktSorted.reduce((s,d)=>s+d.pv_cur,0)), centerSub:"行銷頁各頁加總"});
+renderOrders(document.getElementById('regionOrders'), REGION_ORDER_CHANNELS);
+renderOrders(document.getElementById('mktOrders'), MKT_ORDER_CHANNELS);
+renderShare(document.getElementById('regionShare'), REGIONS);
+renderShare(document.getElementById('mktShare'), MARKETING);
+makeTabSystem(document.getElementById('regionTabs'), document.getElementById('regionDetail'), hubSorted);
+makeTabSystem(document.getElementById('mktTabs'), document.getElementById('mktDetail'), mktSorted);
+renderDimDonut('regionPlatDonut','regionPlatLegend', REGION_PLAT, PLAT_COLORS);
+renderDimDonut('mktPlatDonut','mktPlatLegend', MKT_PLAT, PLAT_COLORS);
+renderRegDonutWithHover('regionRegDonut','regionRegLegend','regionRegHint', REGION_REG, 'region');
+renderRegDonutWithHover('mktRegDonut','mktRegLegend','mktRegHint', MKT_REG, 'mkt');
+</script>
+</body>
+</html>
